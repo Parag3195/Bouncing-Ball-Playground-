@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bouncing Ball Playground 🏀</title>
+  <style>
+    body {
+      font-family: "Comic Sans MS", cursive;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(180deg, #b2fefa, #0ed2f7);
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .playground {
+      position: relative;
+      width: 400px;
+      height: 300px;
+      border: 5px solid #333;
+      border-radius: 10px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .ball {
+      position: absolute;
+      top: 50px;
+      left: 50px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: red;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 20px;
+      background-color: #ff6f61;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #e84118;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <h1>Bouncing Ball Playground 🏀</h1>
+  <div class="playground">
+    <div class="ball"></div>
+  </div>
+
+  <div class="controls">
+    <button onclick="increaseSpeed()">🏃‍♂️ Faster</button>
+    <button onclick="decreaseSpeed()">🐢 Slower</button>
+    <button onclick="increaseGravity()">⬇️ More Gravity</button>
+    <button onclick="decreaseGravity()">⬆️ Less Gravity</button>
+    <button onclick="changeColor()">🎨 Change Color</button>
+    <button onclick="resetBall()">🔄 Reset</button>
+  </div>
+
+  <script>
+    const ball = document.querySelector(".ball");
+    const box = document.querySelector(".playground");
+
+    let x = 50, y = 50;      // Position
+    let dx = 3, dy = 2;      // Velocity
+    let gravity = 0.1;       // Gravity effect
+    let speedMultiplier = 1; // Speed control
+
+    const colors = ["red", "blue", "green", "orange", "purple", "yellow", "pink"];
+
+    function animate() {
+      // Apply velocity
+      x += dx * speedMultiplier;
+      y += dy * speedMultiplier;
+
+      // Apply gravity
+      dy += gravity;
+
+      // Bounce off walls
+      if (x <= 0 || x + 40 >= box.clientWidth) dx = -dx;
+      if (y <= 0 || y + 40 >= box.clientHeight) {
+        dy = -dy * 0.9; // Lose some speed when hitting floor
+        y = Math.min(y, box.clientHeight - 40);
+      }
+
+      ball.style.left = x + "px";
+      ball.style.top = y + "px";
+
+      requestAnimationFrame(animate);
+    }
+
+    // Control functions
+    function increaseSpeed() {
+      speedMultiplier += 0.2;
+    }
+
+    function decreaseSpeed() {
+      speedMultiplier = Math.max(0.2, speedMultiplier - 0.2);
+    }
+
+    function increaseGravity() {
+      gravity += 0.05;
+    }
+
+    function decreaseGravity() {
+      gravity = Math.max(0, gravity - 0.05);
+    }
+
+    function changeColor() {
+      const newColor = colors[Math.floor(Math.random() * colors.length)];
+      ball.style.backgroundColor = newColor;
+    }
+
+    function resetBall() {
+      x = 50;
+      y = 50;
+      dx = 3;
+      dy = 2;
+      gravity = 0.1;
+      speedMultiplier = 1;
+      ball.style.backgroundColor = "red";
+    }
+
+    animate(); // Start animation
+  </script>
+</body>
+</html>
