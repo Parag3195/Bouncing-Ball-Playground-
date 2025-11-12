@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bouncing Ball Playground 🏀</title>
+  <title>Basketball Bounce 🏀</title>
   <style>
     body {
       font-family: "Comic Sans MS", cursive;
@@ -14,17 +14,27 @@
       height: 100vh;
       margin: 0;
       background: linear-gradient(180deg, #b2fefa, #0ed2f7);
+      overflow: hidden;
     }
 
     h1 {
       color: #333;
+      margin-bottom: 5px;
+      text-align: center;
+    }
+
+    #score {
+      font-size: 20px;
+      font-weight: bold;
       margin-bottom: 10px;
     }
 
     .playground {
       position: relative;
-      width: 400px;
-      height: 300px;
+      width: 90vw;
+      max-width: 400px;
+      height: 60vh;
+      max-height: 350px;
       border: 5px solid #333;
       border-radius: 10px;
       background: #fff;
@@ -33,17 +43,54 @@
 
     .ball {
       position: absolute;
-      top: 50px;
-      left: 50px;
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background-color: red;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+      background: radial-gradient(circle at 30% 30%, #ff4500, #c0392b);
+      box-shadow: inset -3px 3px 6px rgba(0,0,0,0.3), 0 0 15px rgba(0,0,0,0.2);
+    }
+
+    /* 🏀 Realistic basket */
+    .basket {
+      position: absolute;
+      top: 20px;
+      width: 80px;
+      height: 10px;
+      background: #ff6f00;
+      border-radius: 5px;
+      box-shadow: 0 3px 0 #cc5500;
+    }
+
+    /* Support pole */
+    .basket::before {
+      content: '';
+      position: absolute;
+      top: -25px;
+      left: 35px;
+      width: 10px;
+      height: 25px;
+      background: #333;
+      border-radius: 3px;
+    }
+
+    /* Net */
+    .basket::after {
+      content: '';
+      position: absolute;
+      bottom: -20px;
+      left: 0;
+      width: 100%;
+      height: 20px;
+      background: repeating-linear-gradient(45deg, #fff, #fff 4px, transparent 4px, transparent 8px),
+                  repeating-linear-gradient(-45deg, #fff, #fff 4px, transparent 4px, transparent 8px);
+      background-size: 8px 8px;
+      opacity: 0.9;
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
     }
 
     .controls {
-      margin-top: 20px;
+      margin-top: 15px;
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
@@ -65,11 +112,34 @@
       background-color: #e84118;
       transform: scale(1.05);
     }
+
+    @media (max-width: 600px) {
+      .playground {
+        width: 95vw;
+        height: 50vh;
+      }
+      .ball {
+        width: 30px;
+        height: 30px;
+      }
+      .basket {
+        width: 60px;
+        height: 8px;
+      }
+      .basket::before {
+        left: 25px;
+        width: 8px;
+        height: 18px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>Bouncing Ball Playground 🏀</h1>
+  <h1>Basketball Bounce 🏀</h1>
+  <div id="score">Score: 0</div>
+
   <div class="playground">
+    <div class="basket"></div>
     <div class="ball"></div>
   </div>
 
@@ -84,69 +154,84 @@
 
   <script>
     const ball = document.querySelector(".ball");
+    const basket = document.querySelector(".basket");
     const box = document.querySelector(".playground");
+    const scoreDisplay = document.getElementById("score");
 
-    let x = 50, y = 50;      // Position
-    let dx = 3, dy = 2;      // Velocity
-    let gravity = 0.1;       // Gravity effect
-    let speedMultiplier = 1; // Speed control
+    let x = 50, y = 200;
+    let dx = 3, dy = 2;
+    let gravity = 0.1;
+    let speedMultiplier = 1;
+    let score = 0;
+    const ballSize = 40;
 
-    const colors = ["red", "blue", "green", "orange", "purple", "yellow", "pink"];
+    const colors = ["#ff4500", "#3498db", "#2ecc71", "#e74c3c", "#f1c40f", "#9b59b6"];
+
+    function moveBasket() {
+      const maxX = box.clientWidth - basket.clientWidth - 10;
+      basket.style.left = Math.random() * maxX + "px";
+    }
 
     function animate() {
-      // Apply velocity
       x += dx * speedMultiplier;
       y += dy * speedMultiplier;
-
-      // Apply gravity
       dy += gravity;
 
-      // Bounce off walls
-      if (x <= 0 || x + 40 >= box.clientWidth) dx = -dx;
-      if (y <= 0 || y + 40 >= box.clientHeight) {
-        dy = -dy * 0.9; // Lose some speed when hitting floor
-        y = Math.min(y, box.clientHeight - 40);
+      // Bounce from sides
+      if (x <= 0 || x + ballSize >= box.clientWidth) dx = -dx;
+      if (y + ballSize >= box.clientHeight) {
+        dy = -dy * 0.9;
+        y = box.clientHeight - ballSize;
       }
 
+      // Update ball position
       ball.style.left = x + "px";
       ball.style.top = y + "px";
+
+      // 🏀 Collision (relative inside playground)
+      const basketX = parseFloat(basket.style.left) || 0;
+      const basketY = parseFloat(getComputedStyle(basket).top);
+      const basketW = basket.offsetWidth;
+      const basketH = basket.offsetHeight;
+
+      // Hit detection: ball center passes through rim area
+      const ballCenterX = x + ballSize / 2;
+      const ballBottom = y + ballSize;
+
+      if (
+        ballBottom <= basketY + basketH + 15 &&   // near rim
+        ballBottom >= basketY + basketH - 5 &&
+        ballCenterX >= basketX &&
+        ballCenterX <= basketX + basketW
+      ) {
+        score++;
+        scoreDisplay.textContent = "Score: " + score;
+        moveBasket();
+        resetBall();
+      }
 
       requestAnimationFrame(animate);
     }
 
-    // Control functions
-    function increaseSpeed() {
-      speedMultiplier += 0.2;
-    }
-
-    function decreaseSpeed() {
-      speedMultiplier = Math.max(0.2, speedMultiplier - 0.2);
-    }
-
-    function increaseGravity() {
-      gravity += 0.05;
-    }
-
-    function decreaseGravity() {
-      gravity = Math.max(0, gravity - 0.05);
-    }
+    function increaseSpeed() { speedMultiplier += 0.2; }
+    function decreaseSpeed() { speedMultiplier = Math.max(0.2, speedMultiplier - 0.2); }
+    function increaseGravity() { gravity += 0.05; }
+    function decreaseGravity() { gravity = Math.max(0, gravity - 0.05); }
 
     function changeColor() {
       const newColor = colors[Math.floor(Math.random() * colors.length)];
-      ball.style.backgroundColor = newColor;
+      ball.style.background = `radial-gradient(circle at 30% 30%, ${newColor}, #c0392b)`;
     }
 
     function resetBall() {
       x = 50;
-      y = 50;
+      y = box.clientHeight - ballSize - 10;
       dx = 3;
-      dy = 2;
-      gravity = 0.1;
-      speedMultiplier = 1;
-      ball.style.backgroundColor = "red";
+      dy = -3; // small upward launch
     }
 
-    animate(); // Start animation
+    moveBasket();
+    animate();
   </script>
 </body>
 </html>
